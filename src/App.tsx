@@ -14,6 +14,7 @@ import MainLayout from "@/components/MainLayout";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
+import NewClient from "@/pages/NewClient";
 import SalesFunnel from "@/pages/SalesFunnel";
 import Proposals from "@/pages/Proposals";
 import Contracts from "@/pages/Contracts";
@@ -30,10 +31,10 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Toaster />
+          <Sonner />
           <Routes>
             {/* Public routes */}
             <Route 
@@ -54,6 +55,7 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="/dashboard" element={<Navigate to="/" replace />} />
               <Route path="/clientes" element={<Clients />} />
+              <Route path="/clientes/novo" element={<NewClient />} />
               <Route path="/funil" element={<SalesFunnel />} />
               <Route path="/propostas" element={<Proposals />} />
               <Route path="/contratos" element={<Contracts />} />
