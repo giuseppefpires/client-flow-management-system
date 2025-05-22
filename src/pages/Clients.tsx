@@ -165,8 +165,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 const Clients = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [stateFilter, setStateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [stateFilter, setStateFilter] = useState("all");
   
   const filteredClients = mockClients.filter(client => {
     return (
@@ -174,8 +174,8 @@ const Clients = () => {
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.razaoSocial.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.cnpj.includes(searchTerm)) &&
-      (statusFilter === "" || client.status === statusFilter) &&
-      (stateFilter === "" || client.state === stateFilter)
+      (statusFilter === "all" || client.status === statusFilter) &&
+      (stateFilter === "all" || client.state === stateFilter)
     );
   });
 
@@ -219,7 +219,7 @@ const Clients = () => {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="Ativo">Ativo</SelectItem>
                   <SelectItem value="Proposta">Proposta</SelectItem>
                   <SelectItem value="Contrato">Contrato</SelectItem>
@@ -236,7 +236,7 @@ const Clients = () => {
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="SP">São Paulo</SelectItem>
                   <SelectItem value="RJ">Rio de Janeiro</SelectItem>
                   <SelectItem value="MG">Minas Gerais</SelectItem>
