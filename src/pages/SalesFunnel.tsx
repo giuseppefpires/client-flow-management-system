@@ -14,6 +14,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Phone, Mail, MessageCircle, Calendar } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { toast } from "sonner";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
 
 interface Client {
   id: string;
@@ -143,7 +158,53 @@ const initialData: {
 const SalesFunnel = () => {
   const [data, setData] = useState(initialData);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newInteraction, setNewInteraction] = useState({
+    type: "call",
+    date: format(new Date(), "dd/MM/yyyy"),
+    time: format(new Date(), "HH:mm"),
+    content: ""
+  });
+  
+  const handleAddInteraction = () => {
+    if (!selectedClient) return;
+    if (!newInteraction.content.trim()) {
+      toast.error("Por favor, adicione uma descrição para a interação");
+      return;
+    }
+    
+    const updatedClient = { 
+      ...selectedClient,
+      interactions: [
+        ...(selectedClient.interactions || []),
+        {
+          type: newInteraction.type,
+          date: `${newInteraction.date} ${newInteraction.time}`,
+          content: newInteraction.content
+        }
+      ]
+    };
+    
+    const updatedData = {
+      ...data,
+      clients: {
+        ...data.clients,
+        [selectedClient.id]: updatedClient
+      }
+    };
+    
+    setData(updatedData);
+    setSelectedClient(updatedClient);
+    setNewInteraction({
+      type: "call",
+      date: format(new Date(), "dd/MM/yyyy"),
+      time: format(new Date(), "HH:mm"),
+      content: ""
+    });
+    setDialogOpen(false);
+    toast.success("Interação adicionada com sucesso!");
+  };
+  
   const onDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
@@ -231,9 +292,11 @@ const SalesFunnel = () => {
       <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Funil de Vendas</h1>
         <div>
-          <Button as={Link} to="/clientes/novo">
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar Cliente
+          <Button asChild>
+            <Link to="/clientes/novo">
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Cliente
+            </Link>
           </Button>
         </div>
       </div>
@@ -356,28 +419,97 @@ const SalesFunnel = () => {
               )}
               
               {selectedClient && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium">Registrar nova interação</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline">
-                      <Phone className="mr-1 h-4 w-4" /> Ligação
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Mail className="mr-1 h-4 w-4" /> E-mail
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Calendar className="mr-1 h-4 w-4" /> Reunião
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp
-                    </Button>
-                  </div>
+                <div className="mt-4">
+                  <Button 
+                    className="w-full" 
+                    onClick={() => setDialogOpen(true)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Interação
+                  </Button>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Nova Interação</DialogTitle>
+            <DialogDescription>
+              {selectedClient ? `Registrar interação com ${selectedClient.name}` : "Selecione um cliente para registrar uma interação"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="interaction-type" className="text-right font-medium text-sm">
+                Tipo
+              </label>
+              <div className="col-span-3">
+                <select
+                  id="interaction-type"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newInteraction.type}
+                  onChange={(e) => setNewInteraction({ ...newInteraction, type: e.target.value })}
+                >
+                  <option value="call">Ligação</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="email">Email</option>
+                  <option value="meeting">Reunião</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="interaction-date" className="text-right font-medium text-sm">
+                Data
+              </label>
+              <div className="col-span-3">
+                <input
+                  id="interaction-date"
+                  type="date"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newInteraction.date}
+                  onChange={(e) => setNewInteraction({ ...newInteraction, date: format(new Date(e.target.value), "dd/MM/yyyy") })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="interaction-time" className="text-right font-medium text-sm">
+                Hora
+              </label>
+              <div className="col-span-3">
+                <input
+                  id="interaction-time"
+                  type="time"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newInteraction.time}
+                  onChange={(e) => setNewInteraction({ ...newInteraction, time: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="interaction-description" className="text-right font-medium text-sm">
+                Descrição
+              </label>
+              <div className="col-span-3">
+                <Textarea
+                  id="interaction-description"
+                  placeholder="Detalhes da interação com o cliente"
+                  value={newInteraction.content}
+                  onChange={(e) => setNewInteraction({ ...newInteraction, content: e.target.value })}
+                  className="min-h-24"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddInteraction}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
