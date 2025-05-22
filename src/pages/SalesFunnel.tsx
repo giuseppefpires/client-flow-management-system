@@ -1,5 +1,5 @@
-
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Phone, Mail, MessageCircle, Plus } from "lucide-react";
+import { Plus, Phone, Mail, MessageCircle, Calendar } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { toast } from "sonner";
 
@@ -230,12 +230,8 @@ const SalesFunnel = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Funil de Vendas</h1>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Calendar className="mr-2 h-4 w-4" />
-            Agendar Ação
-          </Button>
-          <Button>
+        <div>
+          <Button as={Link} to="/clientes/novo">
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Cliente
           </Button>
