@@ -4,12 +4,9 @@ import { SidebarNav } from "./SidebarNav";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu } from "lucide-react";
+import { Outlet } from "react-router-dom";
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
-
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user } = useAuth();
 
@@ -44,7 +41,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </header>
         
         <main className="flex-1 overflow-auto p-6 bg-gray-50">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>
