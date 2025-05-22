@@ -15,6 +15,7 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
 import NewClient from "@/pages/NewClient";
+import EditClient from "@/pages/EditClient";
 import SalesFunnel from "@/pages/SalesFunnel";
 import Proposals from "@/pages/Proposals";
 import Contracts from "@/pages/Contracts";
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/dashboard" element={<Navigate to="/" replace />} />
               <Route path="/clientes" element={<Clients />} />
               <Route path="/clientes/novo" element={<NewClient />} />
+              <Route path="/clientes/editar/:id" element={<EditClient />} />
               <Route path="/funil" element={<SalesFunnel />} />
               <Route path="/propostas" element={<Proposals />} />
               <Route path="/contratos" element={<Contracts />} />
