@@ -24,7 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Eye, FileText, Trash2 } from "lucide-react";
+import { Plus, Edit, Eye, FileText, Trash2, Clock, AlertTriangle } from "lucide-react";
 import { mockContracts, type Contract } from "@/data/mockContracts";
 import { ContractForm } from "@/components/contracts/ContractForm";
 
@@ -44,6 +44,32 @@ const Contracts = () => {
 
     const config = statusConfig[status];
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getDaysUntilDeadline = (endDate: string) => {
+    const today = new Date();
+    const deadline = new Date(endDate);
+    const diffTime = deadline.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getDeadlineIndicator = (contract: Contract) => {
+    if (contract.status === 'concluido' || contract.status === 'cancelado') {
+      return null;
+    }
+
+    const daysLeft = getDaysUntilDeadline(contract.endDate);
+    
+    if (daysLeft < 0) {
+      return <AlertTriangle className="h-4 w-4 text-red-500" title="Prazo vencido" />;
+    } else if (daysLeft <= 7) {
+      return <Clock className="h-4 w-4 text-red-500" title={`${daysLeft} dias restantes`} />;
+    } else if (daysLeft <= 30) {
+      return <Clock className="h-4 w-4 text-orange-500" title={`${daysLeft} dias restantes`} />;
+    }
+    
+    return null;
   };
 
   const handleCreateContract = (data: any) => {
@@ -145,7 +171,12 @@ const Contracts = () => {
                       <TableCell>{formatCurrency(contract.value)}</TableCell>
                       <TableCell>{getStatusBadge(contract.status)}</TableCell>
                       <TableCell>{formatDate(contract.startDate)}</TableCell>
-                      <TableCell>{formatDate(contract.endDate)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <span>{formatDate(contract.endDate)}</span>
+                          {getDeadlineIndicator(contract)}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button

@@ -24,7 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Eye, FileText, Trash2 } from "lucide-react";
+import { Plus, Edit, Eye, FileText, Trash2, Clock, AlertTriangle } from "lucide-react";
 import { mockProposals, type Proposal } from "@/data/mockProposals";
 import { ProposalForm } from "@/components/proposals/ProposalForm";
 
@@ -45,6 +45,32 @@ const Proposals = () => {
 
     const config = statusConfig[status];
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getDaysUntilExpiry = (validUntil: string) => {
+    const today = new Date();
+    const expiryDate = new Date(validUntil);
+    const diffTime = expiryDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getExpiryIndicator = (proposal: Proposal) => {
+    if (proposal.status === 'aceita' || proposal.status === 'rejeitada' || proposal.status === 'vencida') {
+      return null;
+    }
+
+    const daysLeft = getDaysUntilExpiry(proposal.validUntil);
+    
+    if (daysLeft < 0) {
+      return <AlertTriangle className="h-4 w-4 text-red-500" title="Vencida" />;
+    } else if (daysLeft <= 3) {
+      return <Clock className="h-4 w-4 text-orange-500" title={`${daysLeft} dias restantes`} />;
+    } else if (daysLeft <= 7) {
+      return <Clock className="h-4 w-4 text-yellow-500" title={`${daysLeft} dias restantes`} />;
+    }
+    
+    return null;
   };
 
   const handleCreateProposal = (data: any) => {
@@ -144,7 +170,12 @@ const Proposals = () => {
                       <TableCell>{formatCurrency(proposal.value)}</TableCell>
                       <TableCell>{getStatusBadge(proposal.status)}</TableCell>
                       <TableCell>{formatDate(proposal.createdAt)}</TableCell>
-                      <TableCell>{formatDate(proposal.validUntil)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <span>{formatDate(proposal.validUntil)}</span>
+                          {getExpiryIndicator(proposal)}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button

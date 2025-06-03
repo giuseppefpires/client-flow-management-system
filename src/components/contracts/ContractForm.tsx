@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { mockProposals } from "@/data/mockProposals";
 import type { Contract } from "@/data/mockContracts";
 
 const contractSchema = z.object({
@@ -36,17 +37,6 @@ interface ContractFormProps {
   isLoading?: boolean;
 }
 
-const serviceOptions = [
-  'Desenvolvimento Web',
-  'Design UI/UX',
-  'E-commerce',
-  'Consultoria',
-  'Infraestrutura',
-  'Integração de Pagamentos',
-  'Mobile App',
-  'Marketing Digital'
-];
-
 export function ContractForm({ contract, onSubmit, isLoading }: ContractFormProps) {
   const form = useForm<ContractFormData>({
     resolver: zodResolver(contractSchema),
@@ -64,19 +54,46 @@ export function ContractForm({ contract, onSubmit, isLoading }: ContractFormProp
     }
   });
 
+  const acceptedProposals = mockProposals.filter(proposal => proposal.status === 'aceita');
+
+  const handleProposalSelect = (proposalId: string) => {
+    const selectedProposal = acceptedProposals.find(p => p.id === proposalId);
+    if (selectedProposal) {
+      form.setValue('client', selectedProposal.client);
+      form.setValue('title', selectedProposal.title);
+      form.setValue('description', selectedProposal.description);
+      form.setValue('value', selectedProposal.value);
+      form.setValue('services', selectedProposal.services);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="client"
+            name="proposalId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cliente</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nome do cliente" {...field} />
-                </FormControl>
+                <FormLabel>Importar de Proposta Aceita</FormLabel>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  handleProposalSelect(value);
+                }} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma proposta aceita" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {acceptedProposals.map((proposal) => (
+                      <SelectItem key={proposal.id} value={proposal.id}>
+                        {proposal.client} - {proposal.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -106,6 +123,20 @@ export function ContractForm({ contract, onSubmit, isLoading }: ContractFormProp
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="client"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cliente</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome do cliente" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

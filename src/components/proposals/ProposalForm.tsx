@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { mockServices } from "@/data/mockServices";
 import type { Proposal } from "@/data/mockProposals";
 
 const proposalSchema = z.object({
@@ -33,17 +35,6 @@ interface ProposalFormProps {
   isLoading?: boolean;
 }
 
-const serviceOptions = [
-  'Desenvolvimento Web',
-  'Design UI/UX',
-  'E-commerce',
-  'Consultoria',
-  'Infraestrutura',
-  'Integração de Pagamentos',
-  'Mobile App',
-  'Marketing Digital'
-];
-
 export function ProposalForm({ proposal, onSubmit, isLoading }: ProposalFormProps) {
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(proposalSchema),
@@ -57,6 +48,16 @@ export function ProposalForm({ proposal, onSubmit, isLoading }: ProposalFormProp
       services: proposal?.services || []
     }
   });
+
+  const activeServices = mockServices.filter(service => service.isActive);
+
+  const calculateTotalValue = (selectedServices: string[]) => {
+    const total = selectedServices.reduce((sum, serviceName) => {
+      const service = activeServices.find(s => s.name === serviceName);
+      return sum + (service ? service.basePrice : 0);
+    }, 0);
+    form.setValue('value', total);
+  };
 
   return (
     <Form {...form}>
@@ -130,13 +131,44 @@ export function ProposalForm({ proposal, onSubmit, isLoading }: ProposalFormProp
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="services"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Serviços</FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-md p-4">
+                {activeServices.map((service) => (
+                  <div key={service.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={service.id}
+                      checked={field.value.includes(service.name)}
+                      onCheckedChange={(checked) => {
+                        const updatedServices = checked
+                          ? [...field.value, service.name]
+                          : field.value.filter((s) => s !== service.name);
+                        field.onChange(updatedServices);
+                        calculateTotalValue(updatedServices);
+                      }}
+                    />
+                    <label htmlFor={service.id} className="text-sm cursor-pointer">
+                      {service.name} - R$ {service.basePrice.toLocaleString('pt-BR')}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
             name="value"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Valor (R$)</FormLabel>
+                <FormLabel>Valor Total (R$)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

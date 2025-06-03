@@ -23,8 +23,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, Plus, Edit, Trash2, TrendingUp, TrendingDown, DollarSign, Clock } from "lucide-react";
+import { Download, Plus, Edit, Trash2, TrendingUp, TrendingDown, DollarSign, Clock, FileText, Users } from "lucide-react";
 import { mockTransactions, getFinancialSummary, type Transaction } from "@/data/mockFinancial";
+import { mockProposals } from "@/data/mockProposals";
+import { mockContracts } from "@/data/mockContracts";
 import { TransactionForm } from "@/components/financial/TransactionForm";
 
 const Financial = () => {
@@ -34,6 +36,14 @@ const Financial = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const summary = getFinancialSummary(transactions);
+
+  // Estatísticas adicionais
+  const activeContracts = mockContracts.filter(c => c.status === 'ativo');
+  const pendingProposals = mockProposals.filter(p => p.status === 'enviada');
+  const acceptedProposals = mockProposals.filter(p => p.status === 'aceita');
+
+  const totalContractsValue = activeContracts.reduce((sum, contract) => sum + contract.value, 0);
+  const totalPendingProposalsValue = pendingProposals.reduce((sum, proposal) => sum + proposal.value, 0);
 
   const getStatusBadge = (status: Transaction['status']) => {
     const statusConfig = {
@@ -114,7 +124,7 @@ const Financial = () => {
         </div>
       </div>
 
-      {/* Resumo Financeiro */}
+      {/* Resumo Financeiro Expandido */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -172,6 +182,54 @@ const Financial = () => {
             </div>
             <p className="text-xs text-muted-foreground">
               A receber/pagar
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Informações sobre Propostas e Contratos */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Contratos Ativos</CardTitle>
+            <FileText className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {formatCurrency(totalContractsValue)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {activeContracts.length} contratos em andamento
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Propostas Pendentes</CardTitle>
+            <Users className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(totalPendingProposalsValue)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {pendingProposals.length} propostas aguardando resposta
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Propostas Aceitas</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {acceptedProposals.length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Aguardando conversão em contratos
             </p>
           </CardContent>
         </Card>
