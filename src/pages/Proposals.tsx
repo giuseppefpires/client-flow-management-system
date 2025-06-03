@@ -63,11 +63,23 @@ const Proposals = () => {
     const daysLeft = getDaysUntilExpiry(proposal.validUntil);
     
     if (daysLeft < 0) {
-      return <AlertTriangle className="h-4 w-4 text-red-500" title="Vencida" />;
+      return (
+        <div title="Vencida">
+          <AlertTriangle className="h-4 w-4 text-red-500" />
+        </div>
+      );
     } else if (daysLeft <= 3) {
-      return <Clock className="h-4 w-4 text-orange-500" title={`${daysLeft} dias restantes`} />;
+      return (
+        <div title={`${daysLeft} dias restantes`}>
+          <Clock className="h-4 w-4 text-orange-500" />
+        </div>
+      );
     } else if (daysLeft <= 7) {
-      return <Clock className="h-4 w-4 text-yellow-500" title={`${daysLeft} dias restantes`} />;
+      return (
+        <div title={`${daysLeft} dias restantes`}>
+          <Clock className="h-4 w-4 text-yellow-500" />
+        </div>
+      );
     }
     
     return null;
