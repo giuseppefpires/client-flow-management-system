@@ -26,8 +26,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant = 'def
       // Transaction statuses
       pago: { label: 'Pago', variant: 'default' },
       pendente: { label: 'Pendente', variant: 'secondary' },
-      vencido: { label: 'Vencido', variant: 'destructive' },
-      cancelado: { label: 'Cancelado', variant: 'destructive' }
+      vencido: { label: 'Vencido', variant: 'destructive' }
     };
 
     return configs[status] || { label: status, variant: 'default' };
