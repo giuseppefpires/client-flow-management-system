@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
@@ -9,7 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle, Mail } from "lucide-react";
+import { AlertCircle, CheckCircle, Mail, Info } from "lucide-react";
+import { getEmailValidationError } from "@/shared/utils/validation";
 
 type AuthMode = 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'verify-email';
 
@@ -20,11 +20,23 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   
   const { login, signUp, resetPassword, updatePassword, resendConfirmation, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Validar email em tempo real
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (value) {
+      const error = getEmailValidationError(value);
+      setEmailError(error);
+    } else {
+      setEmailError(null);
+    }
+  };
 
   // Verificar se há parâmetros de URL para definir o modo
   useEffect(() => {
@@ -53,6 +65,12 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (emailError) {
+      toast.error(emailError);
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -63,7 +81,8 @@ const Auth = () => {
         toast.success("Login realizado com sucesso!");
       }
     } catch (error) {
-      toast.error("Erro no login. Verifique suas credenciais.");
+      const errorMessage = error instanceof Error ? error.message : "Erro no login. Verifique suas credenciais.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +90,17 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (emailError) {
+      toast.error(emailError);
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -78,7 +108,8 @@ const Auth = () => {
       setAuthMode('verify-email');
       toast.success("Cadastro realizado! Verifique seu email para confirmar a conta.");
     } catch (error) {
-      toast.error("Erro no cadastro. Tente novamente.");
+      const errorMessage = error instanceof Error ? error.message : "Erro no cadastro. Tente novamente.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -86,6 +117,12 @@ const Auth = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (emailError) {
+      toast.error(emailError);
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -93,7 +130,8 @@ const Auth = () => {
       toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
       setAuthMode('login');
     } catch (error) {
-      toast.error("Erro ao enviar email de recuperação.");
+      const errorMessage = error instanceof Error ? error.message : "Erro ao enviar email de recuperação.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +145,11 @@ const Auth = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -114,13 +157,19 @@ const Auth = () => {
       toast.success("Senha atualizada com sucesso!");
       navigate("/");
     } catch (error) {
-      toast.error("Erro ao atualizar senha.");
+      const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar senha.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResendConfirmation = async () => {
+    if (emailError) {
+      toast.error(emailError);
+      return;
+    }
+
     if (!email) {
       toast.error("Por favor, insira seu email.");
       return;
@@ -132,7 +181,8 @@ const Auth = () => {
       await resendConfirmation(email);
       toast.success("Email de confirmação reenviado!");
     } catch (error) {
-      toast.error("Erro ao reenviar confirmação.");
+      const errorMessage = error instanceof Error ? error.message : "Erro ao reenviar confirmação.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -148,10 +198,14 @@ const Auth = () => {
             placeholder="seu@email.com"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
             required
             disabled={isLoading}
+            className={emailError ? "border-red-500" : ""}
           />
+          {emailError && (
+            <p className="text-sm text-red-600">{emailError}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Senha</Label>
@@ -178,7 +232,7 @@ const Auth = () => {
         <Button
           type="submit"
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || !!emailError}
         >
           {isLoading ? "Entrando..." : "Entrar"}
         </Button>
@@ -208,10 +262,14 @@ const Auth = () => {
             placeholder="seu@email.com"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
             required
             disabled={isLoading}
+            className={emailError ? "border-red-500" : ""}
           />
+          {emailError && (
+            <p className="text-sm text-red-600">{emailError}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="signupPassword">Senha</Label>
@@ -225,13 +283,14 @@ const Auth = () => {
             disabled={isLoading}
             minLength={6}
           />
+          <p className="text-xs text-gray-600">Mínimo de 6 caracteres</p>
         </div>
       </CardContent>
       <CardFooter>
         <Button
           type="submit"
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || !!emailError}
         >
           {isLoading ? "Cadastrando..." : "Cadastrar"}
         </Button>
@@ -243,9 +302,9 @@ const Auth = () => {
     <form onSubmit={handleForgotPassword}>
       <CardContent className="space-y-4">
         <Alert>
-          <Mail className="h-4 w-4" />
+          <Info className="h-4 w-4" />
           <AlertDescription>
-            Digite seu email para receber as instruções de recuperação de senha.
+            Digite um email real para receber as instruções de recuperação de senha.
           </AlertDescription>
         </Alert>
         <div className="space-y-2">
@@ -255,17 +314,21 @@ const Auth = () => {
             placeholder="seu@email.com"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
             required
             disabled={isLoading}
+            className={emailError ? "border-red-500" : ""}
           />
+          {emailError && (
+            <p className="text-sm text-red-600">{emailError}</p>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
         <Button
           type="submit"
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || !!emailError}
         >
           {isLoading ? "Enviando..." : "Enviar Email de Recuperação"}
         </Button>
@@ -345,9 +408,13 @@ const Auth = () => {
           placeholder="seu@email.com"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => handleEmailChange(e.target.value)}
           disabled={isLoading}
+          className={emailError ? "border-red-500" : ""}
         />
+        {emailError && (
+          <p className="text-sm text-red-600">{emailError}</p>
+        )}
       </div>
     </CardContent>
   );
@@ -369,7 +436,7 @@ const Auth = () => {
                 onClick={handleResendConfirmation}
                 variant="outline"
                 className="w-full"
-                disabled={isLoading}
+                disabled={isLoading || !!emailError}
               >
                 {isLoading ? "Reenviando..." : "Reenviar Email"}
               </Button>
