@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +13,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { mockProposals } from "@/data/mockProposals";
-import type { Contract } from "@/data/mockContracts";
+import type { Contract } from "@/domains/contracts/types";
 
 const contractSchema = z.object({
   proposalId: z.string().optional(),
@@ -49,8 +48,8 @@ export function ContractForm({ contract, onSubmit, isLoading }: ContractFormProp
       status: contract?.status || 'ativo',
       startDate: contract?.startDate ? new Date(contract.startDate) : undefined,
       endDate: contract?.endDate ? new Date(contract.endDate) : undefined,
-      services: contract?.services || [],
-      paymentTerms: contract?.paymentTerms || ""
+      services: contract?.services?.map(service => service.name) || [],
+      paymentTerms: ""
     }
   });
 
@@ -63,7 +62,7 @@ export function ContractForm({ contract, onSubmit, isLoading }: ContractFormProp
       form.setValue('title', selectedProposal.title);
       form.setValue('description', selectedProposal.description);
       form.setValue('value', selectedProposal.value);
-      form.setValue('services', selectedProposal.services);
+      form.setValue('services', selectedProposal.services.map(service => service.name));
     }
   };
 

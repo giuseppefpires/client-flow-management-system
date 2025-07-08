@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +14,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { mockServices } from "@/data/mockServices";
-import type { Proposal } from "@/data/mockProposals";
+import type { Proposal } from "@/domains/proposals/types";
 
 const proposalSchema = z.object({
   client: z.string().min(1, "Cliente é obrigatório"),
@@ -45,7 +44,7 @@ export function ProposalForm({ proposal, onSubmit, isLoading }: ProposalFormProp
       value: proposal?.value || 0,
       status: proposal?.status || 'rascunho',
       validUntil: proposal?.validUntil ? new Date(proposal.validUntil) : undefined,
-      services: proposal?.services || []
+      services: proposal?.services?.map(service => service.name) || []
     }
   });
 
