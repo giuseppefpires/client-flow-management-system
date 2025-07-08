@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -8,7 +7,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -24,34 +22,39 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Eye, FileText, Trash2, Clock, AlertTriangle } from "lucide-react";
-import { mockContracts, type Contract } from "@/data/mockContracts";
+import { Plus } from "lucide-react";
 import { ContractForm } from "@/components/contracts/ContractForm";
+import { useContracts } from "@/domains/contracts/hooks/useContracts";
+import { Contract } from "@/domains/contracts/types";
+import { StatusBadge } from "@/components/molecules/StatusBadge";
+import { StatusIndicator } from "@/components/atoms/StatusIndicator";
+import { DataTableActions } from "@/components/molecules/DataTableActions";
+import { Heading } from "@/components/atoms/Typography";
+import { formatCurrency, formatDate, calculateDaysUntil } from "@/shared/utils/formatters";
 
 const Contracts = () => {
-  const [contracts, setContracts] = useState<Contract[]>(mockContracts);
+  const { contracts, loading, createContract, updateContract, deleteContract } = useContracts();
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const getStatusBadge = (status: Contract['status']) => {
-    const statusConfig = {
-      ativo: { label: "Ativo", variant: "default" as const },
-      concluido: { label: "Concluído", variant: "secondary" as const },
-      cancelado: { label: "Cancelado", variant: "destructive" as const },
-      pausado: { label: "Pausado", variant: "secondary" as const }
-    };
-
-    const config = statusConfig[status];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+  const handleCreateContract = async (data: any) => {
+    await createContract(data);
+    setIsCreateModalOpen(false);
   };
 
-  const getDaysUntilDeadline = (endDate: string) => {
-    const today = new Date();
-    const deadline = new Date(endDate);
-    const diffTime = deadline.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+  const handleEditContract = async (data: any) => {
+    if (!selectedContract) return;
+    
+    await updateContract({ id: selectedContract.id, ...data });
+    setIsEditModalOpen(false);
+    setSelectedContract(null);
+  };
+
+  const handleDeleteContract = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir este contrato?')) {
+      await deleteContract(id);
+    }
   };
 
   const getDeadlineIndicator = (contract: Contract) => {
@@ -59,82 +62,22 @@ const Contracts = () => {
       return null;
     }
 
-    const daysLeft = getDaysUntilDeadline(contract.endDate);
-    
-    if (daysLeft < 0) {
-      return (
-        <div title="Prazo vencido">
-          <AlertTriangle className="h-4 w-4 text-red-500" />
-        </div>
-      );
-    } else if (daysLeft <= 7) {
-      return (
-        <div title={`${daysLeft} dias restantes`}>
-          <Clock className="h-4 w-4 text-red-500" />
-        </div>
-      );
-    } else if (daysLeft <= 30) {
-      return (
-        <div title={`${daysLeft} dias restantes`}>
-          <Clock className="h-4 w-4 text-orange-500" />
-        </div>
-      );
-    }
-    
-    return null;
+    const daysLeft = calculateDaysUntil(contract.endDate);
+    return <StatusIndicator daysLeft={daysLeft} type="deadline" />;
   };
 
-  const handleCreateContract = (data: any) => {
-    const newContract: Contract = {
-      id: String(Date.now()),
-      ...data,
-      startDate: data.startDate.toISOString().split('T')[0],
-      endDate: data.endDate.toISOString().split('T')[0],
-      signedAt: new Date().toISOString().split('T')[0],
-      services: data.services || []
-    };
-    
-    setContracts([newContract, ...contracts]);
-    setIsCreateModalOpen(false);
-  };
-
-  const handleEditContract = (data: any) => {
-    if (!selectedContract) return;
-    
-    const updatedContract: Contract = {
-      ...selectedContract,
-      ...data,
-      startDate: data.startDate.toISOString().split('T')[0],
-      endDate: data.endDate.toISOString().split('T')[0],
-      services: data.services || []
-    };
-    
-    setContracts(contracts.map(c => c.id === selectedContract.id ? updatedContract : c));
-    setIsEditModalOpen(false);
-    setSelectedContract(null);
-  };
-
-  const handleDeleteContract = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este contrato?')) {
-      setContracts(contracts.filter(c => c.id !== id));
-    }
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Contratos</h1>
+        <Heading>Contratos</Heading>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -181,7 +124,9 @@ const Contracts = () => {
                       <TableCell className="font-medium">{contract.client}</TableCell>
                       <TableCell>{contract.title}</TableCell>
                       <TableCell>{formatCurrency(contract.value)}</TableCell>
-                      <TableCell>{getStatusBadge(contract.status)}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={contract.status} />
+                      </TableCell>
                       <TableCell>{formatDate(contract.startDate)}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -190,25 +135,13 @@ const Contracts = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedContract(contract);
-                              setIsEditModalOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteContract(contract.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <DataTableActions
+                          onEdit={() => {
+                            setSelectedContract(contract);
+                            setIsEditModalOpen(true);
+                          }}
+                          onDelete={() => handleDeleteContract(contract.id)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
