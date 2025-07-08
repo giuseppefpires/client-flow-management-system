@@ -5,13 +5,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { AuthGuard } from "@/components/AuthGuard";
+import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 
 // Layout
 import MainLayout from "@/components/MainLayout";
 
 // Pages
-import Login from "@/pages/Login";
+import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
 import NewClient from "@/pages/NewClient";
@@ -24,9 +24,6 @@ import Financial from "@/pages/Financial";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 
-// Install react-beautiful-dnd
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -38,20 +35,14 @@ const App = () => (
           <Sonner />
           <Routes>
             {/* Public routes */}
-            <Route 
-              path="/login" 
-              element={
-                <AuthGuard requireAuth={false}>
-                  <Login />
-                </AuthGuard>
-              } 
-            />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
             
             {/* Protected routes (require authentication) */}
             <Route element={
-              <AuthGuard>
+              <ProtectedRoute>
                 <MainLayout />
-              </AuthGuard>
+              </ProtectedRoute>
             }>
               <Route index element={<Dashboard />} />
               <Route path="/dashboard" element={<Navigate to="/" replace />} />

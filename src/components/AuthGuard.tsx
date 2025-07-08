@@ -12,23 +12,23 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   children, 
   requireAuth = true
 }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!loading) {
       if (requireAuth && !isAuthenticated) {
-        // Redirect to login if authentication is required but user is not authenticated
-        navigate("/login", { state: { from: location.pathname } });
+        // Redirect to auth if authentication is required but user is not authenticated
+        navigate("/auth", { state: { from: location.pathname } });
       } else if (!requireAuth && isAuthenticated) {
         // Redirect to dashboard if authentication is not required but user is authenticated
         navigate("/");
       }
     }
-  }, [isAuthenticated, isLoading, navigate, location, requireAuth]);
+  }, [isAuthenticated, loading, navigate, location, requireAuth]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
