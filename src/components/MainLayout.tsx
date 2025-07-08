@@ -2,13 +2,12 @@
 import React, { useState } from "react";
 import { SidebarNav } from "./SidebarNav";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { UserProfileDropdown } from "./UserProfileDropdown";
 import { Menu } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 const MainLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { user } = useAuth();
 
   return (
     <div className="flex h-screen bg-background">
@@ -29,15 +28,7 @@ const MainLayout = () => {
             <h1 className="text-lg font-semibold hidden md:block">Sistema de Gestão</h1>
           </div>
           
-          <div className="flex items-center">
-            <div className="hidden md:block text-right mr-2">
-              <p className="font-medium">{user?.full_name}</p>
-              <p className="text-sm text-muted-foreground">{user?.role}</p>
-            </div>
-            <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center uppercase">
-              {user?.full_name?.charAt(0) || "U"}
-            </div>
-          </div>
+          <UserProfileDropdown />
         </header>
         
         <main className="flex-1 overflow-auto p-6 bg-gray-50">

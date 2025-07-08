@@ -36,10 +36,15 @@ export const usePermissions = () => {
     return user?.role === 'moderator';
   };
 
+  const isUser = (): boolean => {
+    return user?.role === 'user';
+  };
+
   return {
     hasPermission,
     hasRole,
     isAdmin,
     isModerator,
+    isUser,
   };
 };

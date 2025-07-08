@@ -17,7 +17,7 @@ export class AuthService {
   }
 
   static async signUp(credentials: SignUpCredentials) {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/auth`;
     
     const { data, error } = await supabase.auth.signUp({
       email: credentials.email,
@@ -42,6 +42,62 @@ export class AuthService {
     if (error) {
       throw new Error(error.message);
     }
+  }
+
+  static async resetPassword(email: string) {
+    const redirectUrl = `${window.location.origin}/auth/reset-password`;
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { success: true };
+  }
+
+  static async updatePassword(newPassword: string) {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { success: true };
+  }
+
+  static async resendConfirmation(email: string) {
+    const redirectUrl = `${window.location.origin}/auth`;
+    
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: redirectUrl,
+      }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { success: true };
+  }
+
+  static async updateEmail(newEmail: string) {
+    const { error } = await supabase.auth.updateUser({
+      email: newEmail
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { success: true };
   }
 
   static async getCurrentUser(): Promise<User | null> {
@@ -109,14 +165,11 @@ export class AuthService {
   }
 
   static async checkPermission(permission: string): Promise<boolean> {
-    // Implementar lógica de verificação de permissão baseada em role
     const user = await this.getCurrentUser();
     if (!user) return false;
 
-    // Exemplo: admins têm todas as permissões
     if (user.role === 'admin') return true;
 
-    // Implementar outras verificações conforme necessário
     return false;
   }
 }
