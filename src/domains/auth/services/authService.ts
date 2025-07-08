@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { LoginCredentials, SignUpCredentials, User, Profile } from '../types';
+import { LoginCredentials, SignUpCredentials, User, Profile, UserRole } from '../types';
 
 export class AuthService {
   static async login(credentials: LoginCredentials) {
@@ -66,7 +66,7 @@ export class AuthService {
       email: user.email!,
       full_name: profile.full_name || '',
       avatar_url: profile.avatar_url,
-      role: profile.role as 'admin' | 'user' | 'moderator',
+      role: (profile.role || 'user') as UserRole,
       created_at: profile.created_at,
       updated_at: profile.updated_at,
     };
@@ -84,7 +84,10 @@ export class AuthService {
       return null;
     }
 
-    return data;
+    return {
+      ...data,
+      role: (data.role || 'user') as UserRole
+    };
   }
 
   static async updateProfile(userId: string, updates: Partial<Profile>) {
@@ -99,7 +102,10 @@ export class AuthService {
       throw new Error(error.message);
     }
 
-    return data;
+    return {
+      ...data,
+      role: (data.role || 'user') as UserRole
+    };
   }
 
   static async checkPermission(permission: string): Promise<boolean> {

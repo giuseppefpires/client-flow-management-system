@@ -8,7 +8,7 @@ export const usePermissions = () => {
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
 
-    // Admins têm todas as permissões
+    // Admins têm todas as permissões  
     if (user.role === 'admin') return true;
 
     // Implementar lógica específica de permissões

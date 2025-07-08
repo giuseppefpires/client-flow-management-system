@@ -31,11 +31,11 @@ const MainLayout = () => {
           
           <div className="flex items-center">
             <div className="hidden md:block text-right mr-2">
-              <p className="font-medium">{user?.name}</p>
+              <p className="font-medium">{user?.full_name}</p>
               <p className="text-sm text-muted-foreground">{user?.role}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center uppercase">
-              {user?.name?.charAt(0) || "U"}
+              {user?.full_name?.charAt(0) || "U"}
             </div>
           </div>
         </header>

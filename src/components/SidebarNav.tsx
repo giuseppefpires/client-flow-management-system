@@ -132,7 +132,7 @@ export function SidebarNav({ className, collapsed, ...props }: SidebarNavProps) 
       )}>
         {!collapsed && (
           <div className="flex flex-col mb-4 text-sm">
-            <p className="font-medium">{user?.name}</p>
+            <p className="font-medium">{user?.full_name}</p>
             <p className="text-muted-foreground text-xs">{user?.email}</p>
           </div>
         )}
